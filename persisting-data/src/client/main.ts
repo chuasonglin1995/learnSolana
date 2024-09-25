@@ -10,7 +10,6 @@ import {
 } from '@solana/web3.js';
 import fs from 'mz/fs';
 import path from 'path';
-import * as borsh from 'borsh';
 import os from 'os';
 import yaml from 'yaml';
 
@@ -32,6 +31,8 @@ let clientPubkey: PublicKey;
 let programId: PublicKey;
 let programKeypair: Keypair;
 let localKeypair: Keypair;
+
+const PROGRAM_PATH = path.resolve(__dirname, '../../dist/program');
 
 /**
  * Connect to dev net
@@ -62,6 +63,19 @@ export async function getLocalAccount() {
   console.log(`Local account's address is:`);
   console.log(`   ${localKeypair.publicKey}`);
 }
+
+/*
+ * Get the targeted program
+ */
+export async function getProgram(programName: string) {
+  programKeypair = await createKeypairFromFile(
+    path.join(PROGRAM_PATH, programName + '-keypair.json'),
+  );
+  programId = programKeypair.publicKey;
+
+  console.log(`Program Id to interact with is: ${programId.toBase58()}`);
+}
+
 
 export async function configureClientAccount(accountSpaceSize: number) {
   const SEED = 'test1'
@@ -94,4 +108,36 @@ export async function configureClientAccount(accountSpaceSize: number) {
   } else {
     console.log(`Client account already exists. We can just use it`);
   }
+}
+
+/**
+ * Ping the program
+ */
+export async function pingProgram(programName: string) {
+  console.log(`All right, let's run it`);
+  console.log(`Pinging ${programName} program`);
+
+  const instruction = new TransactionInstruction({
+    keys: [{pubkey: clientPubkey, isSigner: false, isWritable: true}],
+    programId,
+    data: Buffer.alloc(0), // Empty instruction data
+  })
+  await sendAndConfirmTransaction(
+    connection,
+    new Transaction().add(instruction),
+    [localKeypair],
+  );
+
+  console.log('Ping successful');
+}
+
+/**
+ * Running the main script
+ */
+export async function main(programName: string, accountSpaceSize: number) {
+  await connect();
+  await getLocalAccount();
+  await getProgram(programName);
+  await configureClientAccount(accountSpaceSize);
+  await pingProgram(programName);
 }
