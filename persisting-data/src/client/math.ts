@@ -38,7 +38,7 @@ const PROGRAM_PATH = path.resolve(__dirname, '../../dist/program');
  * Connect to dev net
  */
 export async function connect() {
-  connection = new Connection('https://api.example.devnet.solana.com', 'confirmed');
+  connection = new Connection('https://api.devnet.solana.com', 'confirmed');
   console.log('Successfully connected to Solana devnet');
 }
 
@@ -49,16 +49,16 @@ export async function getLocalAccount() {
   const configYml = await fs.readFile(CONFIG_FILE_PATH, 'utf8');
   const keypairPath =  await yaml.parse(configYml).keypair_path;
   localKeypair = await createKeypairFromFile(keypairPath);
-  const airdropRequestSignature = await connection.requestAirdrop(
-    localKeypair.publicKey,
-    LAMPORTS_PER_SOL*2,
-  );
-  const latestBlockhash = await connection.getLatestBlockhash();
-  await connection.confirmTransaction({
-    signature: airdropRequestSignature,
-    blockhash: latestBlockhash.blockhash,
-    lastValidBlockHeight: latestBlockhash.lastValidBlockHeight
-  });
+  // const airdropRequestSignature = await connection.requestAirdrop(
+  //   localKeypair.publicKey,
+  //   LAMPORTS_PER_SOL*2,
+  // );
+  // const latestBlockhash = await connection.getLatestBlockhash();
+  // await connection.confirmTransaction({
+  //   signature: airdropRequestSignature,
+  //   blockhash: latestBlockhash.blockhash,
+  //   lastValidBlockHeight: latestBlockhash.lastValidBlockHeight
+  // });
   console.log(`Local account loaded successfully.`);
   console.log(`Local account's address is:`);
   console.log(`   ${localKeypair.publicKey}`);
@@ -134,7 +134,7 @@ export async function pingProgram(programName: string) {
 /**
  * Running the main script
  */
-export async function main(programName: string, accountSpaceSize: number) {
+export async function example(programName: string, accountSpaceSize: number) {
   await connect();
   await getLocalAccount();
   await getProgram(programName);
