@@ -32,11 +32,13 @@ fn process_instruction(
         return Err(ProgramError::IncorrectProgramId);
     }
 
+    // try_from_slice is a method that tries to convert a slice of bytes into a Calculator struct -> BorshDeserialize
     let mut calc = Calculator::try_from_slice(&account.data.borrow())?;
 
     let calculator_instructions = CalculatorInstructions::try_from_slice(&instruction_data)?;
     calc.value = calculator_instructions.evaluate(calc.value);
 
+    // serialize it back to the account data
     calc.serialize(&mut &mut account.data.borrow_mut()[..])?;
     msg!("Value is now: {}", calc.value);
 
