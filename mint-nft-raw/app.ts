@@ -80,7 +80,7 @@ export async function main() {
               isSigner: true,
               isWritable: false,
           },
-          // Rent account
+          // Rent account                                                             
           {
               pubkey: SYSVAR_RENT_PUBKEY,
               isSigner: false,
