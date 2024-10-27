@@ -12,15 +12,14 @@ use {
         instructions::{
             CreateMasterEditionV3, 
             CreateMasterEditionV3InstructionArgs, 
-            CreateMetadataAccountV3, 
+            CreateMetadataAccountV3,
             CreateMetadataAccountV3InstructionArgs,
         },
-        types::DataV2
+        types::DataV2,
     },
 };
 
-
-declare_id!("9N9SM8xLvfUj9ABwTwCfmkWoPXpVQZeeS7Lhw1351TpX");// need to change
+declare_id!("9N9SM8xLvfUj9ABwTwCfmkWoPXpVQZeeS7Lhw1351TpX"); // need to change
 
 #[program]
 pub mod mint_nft {
@@ -32,8 +31,7 @@ pub mod mint_nft {
         metadata_symbol: String,
         metadata_uri: String,
     ) -> Result<()> {
-
-        // There is a difference between 
+        // There is a difference between
         // system_program::create_account -> performs actual operation on Solana blockchain
         // system_program::CreateAccount -> just a mod function
         msg!("Creating mint account...");
@@ -46,10 +44,10 @@ pub mod mint_nft {
                 system_program::CreateAccount {
                     from: ctx.accounts.mint_authority.to_account_info(), // our wallet
                     to: ctx.accounts.mint.to_account_info(),
-                }
+                },
             ), // add
-            LAMPORTS_PER_SOL, // lamports
-            82, // space
+            LAMPORTS_PER_SOL,                  // lamports
+            82,                                // space
             &ctx.accounts.token_program.key(), // owner
         )?;
 
@@ -65,11 +63,11 @@ pub mod mint_nft {
         );
         token::initialize_mint2(
             cpi_context_initialize_mint,
-            0, 
+            0,
             &ctx.accounts.mint_authority.key(),
             Some(&ctx.accounts.mint_authority.key()),
         )?;
-        
+
         msg!("Creating token account...");
         msg!("Token Address: {}", &ctx.accounts.token_account.key());
         let cpi_ctx_create_token_account = CpiContext::new(
@@ -78,17 +76,15 @@ pub mod mint_nft {
                 payer: ctx.accounts.mint_authority.to_account_info(),
                 associated_token: ctx.accounts.token_account.to_account_info(),
                 authority: ctx.accounts.mint_authority.to_account_info(),
-                mint:ctx.accounts.mint.to_account_info(),
+                mint: ctx.accounts.mint.to_account_info(),
                 system_program: ctx.accounts.system_program.to_account_info(),
                 token_program: ctx.accounts.token_program.to_account_info(),
             },
         );
-        associated_token::create(
-            cpi_ctx_create_token_account,
-        )?;
+        associated_token::create(cpi_ctx_create_token_account)?;
 
         msg!("Minting token to token account...");
-        msg!("Mint: {}", &ctx.accounts.mint.to_account_info().key());   
+        msg!("Mint: {}", &ctx.accounts.mint.to_account_info().key());
         msg!("Token Address: {}", &ctx.accounts.token_account.key());
 
         let ctx_mint_to = CpiContext::new(
@@ -102,17 +98,21 @@ pub mod mint_nft {
         token::mint_to(ctx_mint_to, 1)?;
 
         msg!("Creating metadata account...");
-        msg!("Metadata account address: {}", &ctx.accounts.metadata.to_account_info().key());
+        msg!(
+            "Metadata account address: {}",
+            &ctx.accounts.metadata.to_account_info().key()
+        );
 
-        let ctx_create_metadata_account = mpl_token_metadata::instructions::CreateMetadataAccountV3 {
-            metadata: ctx.accounts.metadata.key(),
-            mint: ctx.accounts.mint.key(),
-            mint_authority: ctx.accounts.mint_authority.key(),
-            payer: ctx.accounts.mint_authority.key(),
-            update_authority: (ctx.accounts.mint_authority.key(), true),
-            rent: Some(ctx.accounts.rent.key()),
-            system_program: ctx.accounts.system_program.key(),
-        };
+        let ctx_create_metadata_account =
+            mpl_token_metadata::instructions::CreateMetadataAccountV3 {
+                metadata: ctx.accounts.metadata.key(),
+                mint: ctx.accounts.mint.key(),
+                mint_authority: ctx.accounts.mint_authority.key(),
+                payer: ctx.accounts.mint_authority.key(),
+                update_authority: (ctx.accounts.mint_authority.key(), true),
+                rent: Some(ctx.accounts.rent.key()),
+                system_program: ctx.accounts.system_program.key(),
+            };
 
         invoke(
             &CreateMetadataAccountV3::instruction(
@@ -120,7 +120,7 @@ pub mod mint_nft {
                 CreateMetadataAccountV3InstructionArgs {
                     data: DataV2 {
                         name: metadata_title,
-                        symbol:metadata_symbol,
+                        symbol: metadata_symbol,
                         uri: metadata_uri,
                         uses: None,
                         creators: None,
@@ -129,7 +129,7 @@ pub mod mint_nft {
                     },
                     is_mutable: true,
                     collection_details: None,
-                }
+                },
             ),
             &[
                 ctx.accounts.metadata.to_account_info(),
@@ -141,26 +141,30 @@ pub mod mint_nft {
         )?;
 
         msg!("Creating master edition metadata account...");
-        msg!("Master edition metadata account address: {}", &ctx.accounts.master_edition.to_account_info().key());
-        
-        let ctx_create_master_edition_metadata_account = mpl_token_metadata::instructions::CreateMasterEditionV3 {
-            edition: ctx.accounts.master_edition.key(),
-            metadata: ctx.accounts.metadata.key(),
-            mint: ctx.accounts.mint.key(),
-            mint_authority: ctx.accounts.mint_authority.key(),
-            payer: ctx.accounts.mint_authority.key(),
-            update_authority: ctx.accounts.mint_authority.key(),
-            token_program: ctx.accounts.token_program.key(),
-            rent: Some(ctx.accounts.rent.key()),
-            system_program: ctx.accounts.system_program.key(),
-        };
-    
+        msg!(
+            "Master edition metadata account address: {}",
+            &ctx.accounts.master_edition.to_account_info().key()
+        );
+
+        let ctx_create_master_edition_metadata_account =
+            mpl_token_metadata::instructions::CreateMasterEditionV3 {
+                edition: ctx.accounts.master_edition.key(),
+                metadata: ctx.accounts.metadata.key(),
+                mint: ctx.accounts.mint.key(),
+                mint_authority: ctx.accounts.mint_authority.key(),
+                payer: ctx.accounts.mint_authority.key(),
+                update_authority: ctx.accounts.mint_authority.key(),
+                token_program: ctx.accounts.token_program.key(),
+                rent: Some(ctx.accounts.rent.key()),
+                system_program: ctx.accounts.system_program.key(),
+            };
+
         invoke(
             &CreateMasterEditionV3::instruction(
                 &ctx_create_master_edition_metadata_account,
                 CreateMasterEditionV3InstructionArgs {
                     max_supply: Some(1),
-                }
+                },
             ),
             &[
                 ctx.accounts.master_edition.to_account_info(),
@@ -189,7 +193,7 @@ pub struct MintNft<'info> {
     pub mint: Signer<'info>,
     /// CHECK: We're about to create this with Anchor
     #[account(mut)]
-    pub token_account: UncheckedAccount<'info>, 
+    pub token_account: UncheckedAccount<'info>,
     #[account(mut)]
     pub mint_authority: Signer<'info>,
     pub rent: Sysvar<'info, Rent>,
@@ -199,4 +203,3 @@ pub struct MintNft<'info> {
     /// CHECK Metaplex will check this
     pub token_metadata_program: UncheckedAccount<'info>,
 }
-

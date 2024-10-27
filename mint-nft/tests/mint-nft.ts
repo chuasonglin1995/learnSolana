@@ -3,7 +3,11 @@ import { Program } from "@coral-xyz/anchor";
 import { MintNft } from "../target/types/mint_nft";
 
 describe("mint-nft", () => {
-  // Configure the client to use the local cluster.
+
+  const nftTitle  = "My NFT";
+  const nftSymbol = "NFT";
+  const nftBaseUri = "https://arweave.net/abc123";
+  
   anchor.setProvider(anchor.AnchorProvider.env());
 
   const program = anchor.workspace.MintNft as Program<MintNft>;
