@@ -6,7 +6,7 @@ use {
     },
     anchor_spl::{
         associated_token::{self, AssociatedToken},
-        token,
+        token::{self, Token},
     },
     mpl_token_metadata::{
         instructions::{
@@ -19,7 +19,7 @@ use {
     },
 };
 
-declare_id!("9N9SM8xLvfUj9ABwTwCfmkWoPXpVQZeeS7Lhw1351TpX"); // need to change
+declare_id!("9cCFo9xYREUm9qgMrZedBrwaTBRRazD7qrmijXCujSwY");
 
 #[program]
 pub mod mint_nft {
@@ -54,18 +54,16 @@ pub mod mint_nft {
         msg!("Initializing mint account...");
         msg!("Mint: {}", &ctx.accounts.mint.key());
 
-        let cpi_accounts_initialize_mint = token::InitializeMint2 {
-            mint: ctx.accounts.mint.to_account_info(),
-        };
-        let cpi_context_initialize_mint = CpiContext::new(
-            ctx.accounts.token_program.to_account_info(),
-            cpi_accounts_initialize_mint,
-        );
         token::initialize_mint2(
-            cpi_context_initialize_mint,
+            CpiContext::new(
+                ctx.accounts.token_program.to_account_info(),
+                token::InitializeMint2 {
+                    mint: ctx.accounts.mint.to_account_info(),
+                }
+            ),
             0,
             &ctx.accounts.mint_authority.key(),
-            Some(&ctx.accounts.mint_authority.key()),
+            Some(&ctx.accounts.mint_authority.key())
         )?;
 
         msg!("Creating token account...");
@@ -198,7 +196,7 @@ pub struct MintNft<'info> {
     pub mint_authority: Signer<'info>,
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
-    pub token_program: Program<'info, System>,
+    pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     /// CHECK Metaplex will check this
     pub token_metadata_program: UncheckedAccount<'info>,
